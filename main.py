@@ -2,8 +2,8 @@
 import asyncio
 from aiogram.fsm.state import State, StatesGroup
 from aiogram import Router, F
-from aiogram.filters import CommandStart, Command, StateFilter
-from aiogram import Bot, Dispatcher, types
+from aiogram.filters import CommandStart
+from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
 from aiogram.types import Message, FSInputFile, CallbackQuery
 from db import database
@@ -50,7 +50,7 @@ def generate_key():
     result_str = ''.join(random.choice(letters) for i in range(6))
     f = open('invite_code.txt', 'w+')
     f.write(result_str)
-    f.close
+    f.close()
 
 global user_key
 
@@ -72,7 +72,7 @@ counter = increment_counter()
 
 
 # class
-class idk(StatesGroup):
+class Idk(StatesGroup):
     user_id = State()
     reg_login = State()
     reg_answ = State()
@@ -82,7 +82,7 @@ class idk(StatesGroup):
     bot_pos_pro_obj_ii = State()
     bot_pos_pro_obj_ii_vid = State()
     bot_pos_nopro = State()
-    ot_pos_pro_obj = State()
+    bot_pos_pro_obj = State()
     bot_admin = State()
     admin_panel = State()
     admin_delete_user = State()
@@ -99,7 +99,7 @@ async def start(message: Message, state: FSMContext):
             '<b>Привет</b>, это бот который выдает номер предписания.',
             'Чтобы начать, введите <b>ключ доступа</b>',
         ]
-        await state.set_state(idk.reg_login)
+        await state.set_state(Idk.reg_login)
         await bot.send_message(message.from_user.id, text='\n'.join(str_msg), parse_mode=ParseMode.HTML)
     # если юзер есть в бд
     else:
@@ -108,10 +108,10 @@ async def start(message: Message, state: FSMContext):
             str_msg = [
                 'Чтобы начать, введите <b>ключ доступа</b>',
             ]
-            await state.set_state(idk.reg_login)
+            await state.set_state(Idk.reg_login)
             await bot.send_message(message.from_user.id, text='\n'.join(str_msg), parse_mode=ParseMode.HTML)
         else:
-            await state.set_state(idk.bot_use)
+            await state.set_state(Idk.bot_use)
             await bot.send_message(message.from_user.id, "<b>Вы уже зарегестрированы!</b>", parse_mode=ParseMode.HTML)
             await bot.send_message(message.from_user.id, '<b>Главное меню</b>',
                                    parse_mode=ParseMode.HTML, reply_markup=markups.menu)
@@ -128,7 +128,7 @@ get_number = file.read()
 counter.set_value(int(get_number))
 
 
-@start_router.message(idk.reg_login)
+@start_router.message(Idk.reg_login)
 async def bot_message(message: Message, state: FSMContext):
     if message.chat.type == 'private':
         if db.get_signup(message.from_user.id) == "setname" and not (
@@ -140,7 +140,7 @@ async def bot_message(message: Message, state: FSMContext):
                 await bot.send_message(message.from_user.id,
                                        '<b>Отлично</b>, теперь введите <b>ФИО</b>, в формате <b>Иванов Иван Иванович</b>',
                                        parse_mode=ParseMode.HTML)
-                await state.set_state(idk.reg_answ)
+                await state.set_state(Idk.reg_answ)
             else:
                 await bot.send_message(message.from_user.id, '<b>Извините, но у вас нет доступа к боту ;(</b>',
                                        parse_mode=ParseMode.HTML)
@@ -150,7 +150,7 @@ async def bot_message(message: Message, state: FSMContext):
             await bot.send_message(message.from_user.id, "<b>Извините, но у вас нет доступа к боту ;(</b>",
                                    parse_mode=ParseMode.HTML)
 
-@start_router.message(idk.bot_use)
+@start_router.message(Idk.bot_use)
 async def bot_message(message: Message, state: FSMContext):
         if message.text == 'Получить номер предписания' and db.get_signup(message.from_user.id) == "done":
             answer = "Ваш номер предписания: №" + str(counter.new_value())
@@ -173,7 +173,7 @@ async def bot_message(message: Message, state: FSMContext):
             await bot.send_message(message.from_user.id, text='\n'.join(text), parse_mode=ParseMode.HTML)
 
         if message.text == "Заполнить расстановку":
-            await state.set_state(idk.bot_pos)
+            await state.set_state(Idk.bot_pos)
             await bot.send_message(message.from_user.id, "<b>Меню расстановки:</b>", parse_mode=ParseMode.HTML,
                                    reply_markup=markups.pos_menu)
 
@@ -186,63 +186,64 @@ async def bot_message(message: Message, state: FSMContext):
                 await bot.send_message(message.from_user.id, "Привет админ!")
                 await bot.send_message(message.from_user.id, "<b>Выберите действие:</b>", parse_mode=ParseMode.HTML,
                                        reply_markup=markups.admin_menu)
-                await state.set_state(idk.admin_panel)  # Переход в состояние админа
+                await state.set_state(Idk.admin_panel)  # Переход в состояние админа
             else:
                 await bot.send_message(message.from_user.id, "Недостаточно прав =(")
                 await bot.send_message(message.from_user.id, "<b>Главное меню:</b>", parse_mode=ParseMode.HTML,
                                        reply_markup=markups.menu)
-                await state.set_state(idk.bot_use)  # Переход в состояние пользователя
+                await state.set_state(Idk.bot_use)  # Переход в состояние пользователя
 
-@start_router.message(idk.bot_pos)
+@start_router.message(Idk.bot_pos)
 async def make_choice_bot_pos_menu(message: Message, state: FSMContext):
     if message.text == "Назад":
         await bot.send_message(message.from_user.id, "<b>Главное меню:</b>", parse_mode=ParseMode.HTML,
                                reply_markup=markups.menu)
 
-        await state.set_state(idk.bot_use)
+        await state.set_state(Idk.bot_use)
     if message.text == "Производственный статус":
         await bot.send_message(message.from_user.id, "<b>Производственный статус:</b>", parse_mode=ParseMode.HTML,
                                reply_markup=markups.pro_menu)
         await state.update_data(bot_pos="Производственный")
-        await state.set_state(idk.bot_pos_pro)
+        await state.set_state(Idk.bot_pos_pro)
 
     if message.text == "Непроизводственный статус":
         await bot.send_message(message.from_user.id, "<b>Непроизводственный статус:</b>", parse_mode=ParseMode.HTML,
                                reply_markup=markups.nopro_menu)
         await state.update_data(bot_pos="Непроизводственный")
-        await state.set_state(idk.bot_pos_nopro)
+        await state.set_state(Idk.bot_pos_nopro)
 
 
-@start_router.message(idk.bot_pos_pro)
+@start_router.message(Idk.bot_pos_pro)
 async def make_choice_bot_pos_pro_menu(message: Message, state: FSMContext):
     #кнопка "Назад"
     if message.text == "Назад":
         await bot.send_message(message.from_user.id, "<b>Меню расстановки:</b>", parse_mode=ParseMode.HTML,
                                reply_markup=markups.pos_menu)
-        await state.set_state(idk.bot_pos) 
+        await state.set_state(Idk.bot_pos)
     #кнопка "Заполнить как за предыдущий день"
     if message.text == "Заполнить как за предыдущий день":
         await bot.send_message(message.from_user.id, "<b>Информация по расстановке обновлена</b>", parse_mode=ParseMode.HTML)
-        await bot.send_message(message.from_user.id, "<b>Ваш статус: пока не известен</b>", parse_mode=ParseMode.HTML)
+        await bot.send_message(message.from_user.id, "<b>Ваш статус: пока не известен</b>", parse_mode=ParseMode.HTML,
+                               reply_markup=markups.pos_menu)
         # нужно придумать функции: 
         #1. проверка есть ли расстановка за предыдущий день по данному работнику
         #2. если есть - копирование строки (строк) с обновлением даты на текущую
         #3. если нет - то вывод сообщения об отсутствии записи за предыдущую дату
         #4. по завершению обновления статуса по вчерашнему дню вывод на экран текущего статуса
-        await state.set_state(idk.bot_pos) 
+        await state.set_state(Idk.bot_pos)
     #кнопка "Выбрать объект"
     if message.text == "Выбрать объект":
         await bot.send_message(message.from_user.id, "<b>Введите шестизначный ID объекта:</b>", parse_mode=ParseMode.HTML,
                                reply_markup=markups.sel_obj_menu)
-        await state.set_state(idk.bot_pos_pro_obj)
+        await state.set_state(Idk.bot_pos_pro_obj)
 
 
-@start_router.message(idk.bot_pos_pro_obj)
+@start_router.message(Idk.bot_pos_pro_obj)
 async def make_choice_bot_pos_pro_obj_menu(message: Message, state: FSMContext):
     if message.text == "Назад":
         await bot.send_message(message.from_user.id, "<b>Меню расстановки:</b>", parse_mode=ParseMode.HTML,
                                reply_markup=markups.pos_menu)
-        await state.set_state(idk.bot_pos)
+        await state.set_state(Idk.bot_pos)
     else:
         obj = check_six_digit_number(message.text)
         if obj == 0:
@@ -250,33 +251,33 @@ async def make_choice_bot_pos_pro_obj_menu(message: Message, state: FSMContext):
         else:
             await state.update_data(bot_pos_pro_obj=obj)
             data = await state.get_data()
-            msg_text = (f'Вы выбрали объект <b>{data.get("bot_pos_pro_obj")}</b>')
+            msg_text = f'Вы выбрали объект <b>{data.get("bot_pos_pro_obj")}</b>'
             await bot.send_message(message.from_user.id, msg_text, parse_mode=ParseMode.HTML)
             await bot.send_message(message.from_user.id, "<b>Выберите контролируемый вид изысканий:</b>", parse_mode=ParseMode.HTML, reply_markup=markups.viborii_menu)
-            await state.set_state(idk.bot_pos_pro_obj_ii)
+            await state.set_state(Idk.bot_pos_pro_obj_ii)
 
 
-@start_router.message(idk.bot_pos_pro_obj_ii)
+@start_router.message(Idk.bot_pos_pro_obj_ii)
 async def make_choice_bot_pos_pro_obj_ii_menu(message: Message, state: FSMContext):
     if message.text == "Назад":
         await bot.send_message(message.from_user.id, "<b>Меню расстановки:</b>", parse_mode=ParseMode.HTML,
                                reply_markup=markups.pos_menu)
-        await state.set_state(idk.bot_pos)
+        await state.set_state(Idk.bot_pos)
     
-    if message.text == "ИГИ" or "ИГДИ" or "ИГМИ" or "ИЭИ":   :     
-            await state.update_data(bot_pos_pro_obj_ii=message.text)
-            data = await state.get_data()
-            msg_text = (f'Вы выбрали вид изысканий <b>{data.get("bot_pos_pro_obj_ii")}</b>')
-            await bot.send_message(message.from_user.id, msg_text, parse_mode=ParseMode.HTML)
-            await bot.send_message(message.from_user.id, "<b>Укажите вид работ:</b>", parse_mode=ParseMode.HTML, reply_markup=markups.vibor_vid_menu)
-            await state.set_state(idk.bot_pos_pro_obj_ii_vid)
+    if message.text == "ИГИ" or "ИГДИ" or "ИГМИ" or "ИЭИ":
+        await state.update_data(bot_pos_pro_obj_ii=message.text)
+        data = await state.get_data()
+        msg_text = f'Вы выбрали вид изысканий <b>{data.get("bot_pos_pro_obj_ii")}</b>'
+        await bot.send_message(message.from_user.id, msg_text, parse_mode=ParseMode.HTML)
+        await bot.send_message(message.from_user.id, "<b>Укажите вид работ:</b>", parse_mode=ParseMode.HTML, reply_markup=markups.vibor_vid_menu)
+        await state.set_state(Idk.bot_pos_pro_obj_ii_vid)
         
-@start_router.message(idk.bot_pos_pro_obj_ii_vid)
+@start_router.message(Idk.bot_pos_pro_obj_ii_vid)
 async def make_choice_bot_pos_pro_obj_ii_vid_menu(message: Message, state: FSMContext):
     if message.text == "Назад":
         await bot.send_message(message.from_user.id, "<b>Меню расстановки:</b>", parse_mode=ParseMode.HTML,
                                reply_markup=markups.pos_menu)
-        await state.set_state(idk.bot_pos)
+        await state.set_state(Idk.bot_pos)
     
     if message.text in ['Подготовительный: проверка ТЗ (первичное)',
                         'Подготовительный: проверка ТЗ (повторное)',
@@ -290,24 +291,25 @@ async def make_choice_bot_pos_pro_obj_ii_vid_menu(message: Message, state: FSMCo
                        'Камеральный: проверка ТО (повторное)']:     
             await state.update_data(bot_pos_pro_obj_ii_vid=message.text)
             data = await state.get_data()
-            msg_text = (f'Вы выбрали вид работ <b>{data.get("bot_pos_pro_obj_ii_vid")}</b>')
+            msg_text = f'Вы выбрали вид работ <b>{data.get("bot_pos_pro_obj_ii_vid")}</b>'
             await bot.send_message(message.from_user.id, msg_text, parse_mode=ParseMode.HTML)
-            msg_text = (f'Ваш статус сегодня: Объект:<b>{data.get("bot_pos_pro_obj")}</b> Вид ИИ: <b>{data.get("bot_pos_pro_obj_ii")}</b> Вид работ: <b>{data.get("bot_pos_pro_obj_ii_vid")}</b>')
+            msg_text = f'Ваш статус сегодня: Объект:<b>{data.get("bot_pos_pro_obj")}</b> Вид ИИ: <b>{data.get("bot_pos_pro_obj_ii")}</b> Вид работ: <b>{data.get("bot_pos_pro_obj_ii_vid")}</b>'
             #запись в БД
+            await bot.send_message(message.from_user.id, msg_text, parse_mode=ParseMode.HTML)
             await bot.send_message(message.from_user.id, "<b>Производственный статус:</b>", parse_mode=ParseMode.HTML, reply_markup=markups.pro_menu)
-            await state.set_state(idk.bot_pos_pro)
-            await state.clear()
+            await state.set_state(Idk.bot_pos_pro)
+            #await state.clear()
 
-@start_router.message(idk.bot_pos_nopro)
+@start_router.message(Idk.bot_pos_nopro)
 async def make_choice_bot_pos_nopro_menu(message: Message, state: FSMContext):
     if message.text == "Назад":
         await bot.send_message(message.from_user.id, "<b>Меню расстановки:</b>", parse_mode=ParseMode.HTML,
                                reply_markup=markups.pos_menu)
-        await state.set_state(idk.bot_pos)
+        await state.set_state(Idk.bot_pos)
 
 
 
-@start_router.message(idk.admin_panel)
+@start_router.message(Idk.admin_panel)
 async def admin_panel(message: Message, state: FSMContext):
 
         if message.text == 'Удалить номер предписания' and db.get_signup(
@@ -350,7 +352,7 @@ async def admin_panel(message: Message, state: FSMContext):
         if message.text == "Удалить пользователя":
             await bot.send_message(message.from_user.id, "<b>Введите user_id пользователя (из базы данных):</b>",
                                    parse_mode=ParseMode.HTML)
-            await state.set_state(idk.user_id)
+            await state.set_state(Idk.user_id)
 
         if message.text == "Сгенерировать код" and (
                 message.from_user.id == 977050266 or message.from_user.id == 1849857447 or message.from_user.id == 81061749):
@@ -368,12 +370,12 @@ async def admin_panel(message: Message, state: FSMContext):
                                    parse_mode=ParseMode.HTML, reply_markup=markups.admin_menu)
 
         if message.text == "Вернуться в главное меню":
-            await state.set_state(idk.bot_use)
+            await state.set_state(Idk.bot_use)
             await bot.send_message(message.from_user.id, "<b>Главное меню:</b>", parse_mode=ParseMode.HTML,
                                    reply_markup=markups.menu)
 
 
-@start_router.message(idk.reg_answ)
+@start_router.message(Idk.reg_answ)
 async def procces_reg(message: Message, state: FSMContext):
     db.set_name(message.from_user.id, message.text)
     db.set_signup(message.from_user.id, "done")
@@ -383,24 +385,24 @@ async def procces_reg(message: Message, state: FSMContext):
     file_r.write('Успешно зарегистрировался: ' + db.get_name(message.from_user.id) + ' ' + str(
         datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S")) + '\n')
     file_r.close()
-    await state.set_state(idk.bot_use)
+    await state.set_state(Idk.bot_use)
 
 
-@start_router.message(F.text, idk.user_id)
+@start_router.message(F.text, Idk.user_id)
 async def process_id(message: Message, state: FSMContext):
     await state.update_data(user_id = message.text)
     data = await state.get_data()
     global shit
     shit = data.get("user_id")
 
-    if (db.user_exists(shit) == True):
+    if db.user_exists(shit):
         await bot.send_message(message.from_user.id, "<b>Удалить " + db.get_name(shit) + " ?</b>",
                                parse_mode=ParseMode.HTML, reply_markup=markups.ikb_remove_user)
-        await state.set_state(idk.admin_delete_user)
+        await state.set_state(Idk.admin_delete_user)
     else:
         await bot.send_message(message.from_user.id, "<b>Такого пользователя не существует!</b> ",
                                parse_mode=ParseMode.HTML, reply_markup=markups.admin_menu)
-        await state.set_state(idk.admin_panel)
+        await state.set_state(Idk.admin_panel)
 
 
 @start_router.callback_query(F.data == "Удалить пользователя")
@@ -410,13 +412,13 @@ async def user_deleted(callback: CallbackQuery, state: FSMContext):
     await callback.answer('Пользователь' + db.get_name(shit) + ' - успешно удален!',
                            parse_mode=ParseMode.HTML)
     db.delete_user(shit)
-    await state.set_state(idk.admin_panel)
+    await state.set_state(Idk.admin_panel)
 
 @start_router.callback_query(F.data == "Отмена")
 async def user_deleted(callback: CallbackQuery, state: FSMContext):
     await bot.send_message(callback.from_user.id, 'Отмена, пусть ' + db.get_name(shit) + ' остаётся!',
                            parse_mode=ParseMode.HTML, reply_markup=markups.admin_menu)
-    await state.set_state(idk.admin_panel)
+    await state.set_state(Idk.admin_panel)
 
 if __name__ == '__main__':
     asyncio.run(main())
