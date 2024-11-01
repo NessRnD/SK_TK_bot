@@ -3,6 +3,7 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMar
 #global buttons
 button_exit = KeyboardButton(text='Вернуться в главное меню')
 button_back = KeyboardButton(text='Назад')
+button_accept = KeyboardButton(text='Подтвердить')
 
 #main menu
 #buttons
@@ -36,6 +37,12 @@ pro_menu = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
     [button_back]
 ])
 
+#sel_obj_menu - заполнение Объекта
+sel_obj_menu = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
+    [button_accept],
+    [button_back]
+])
+
 #viborii_menu
 button_igi = KeyboardButton(text='ИГИ')
 button_igdi = KeyboardButton(text='ИГДИ')
@@ -47,6 +54,33 @@ viborii_menu = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
     [button_igdi],
     [button_igmi],
     [button_iei],
+    [button_back]
+])
+
+
+#vibor_vid_menu
+button_podg_tz1 = KeyboardButton(text='Подготовительный: проверка ТЗ (первичное)')
+button_podg_tz2 = KeyboardButton(text='Подготовительный: проверка ТЗ (повторное)')
+button_podg_ppr1 = KeyboardButton(text='Подготовительный: проверка ППР (первичное)')
+button_podg_ppr2 = KeyboardButton(text='Подготовительный: проверка ППР (повторное)')
+button_pole_dist = KeyboardButton(text='Полевой этап (дистанционно)')
+button_pole = KeyboardButton(text='Полевой этап')
+button_laba_dist = KeyboardButton(text='Лабораторный этап (дистанционно)')
+button_laba = KeyboardButton(text='Лабораторный этап')
+button_kameral1 = KeyboardButton(text='Камеральный: проверка ТО (первичное)')
+button_kameral2 = KeyboardButton(text='Камеральный: проверка ТО (повторное)')
+
+vibor_vid_menu = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
+    [button_podg_tz1],
+    [button_podg_tz2],
+    [button_podg_ppr1],
+    [button_podg_ppr2],
+    [button_pole_dist],
+    [button_pole],
+    [button_laba_dist],
+    [button_laba],
+    [button_kameral1],
+    [button_kameral2],
     [button_back]
 ])
 
