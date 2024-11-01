@@ -14,6 +14,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.memory import MemoryStorage
 import random
 import string
+import re
 
 admin_ids = [977050266, 1849857447, 81061749]
 
@@ -23,6 +24,22 @@ def save(x):
     f = open('log.txt', 'w+')
     f.write(x)
     f.close()
+
+def check_six_digit_number(message):
+  """
+  Проверяет, содержит ли сообщение шестизначное число.
+
+  Args:
+    message: Текст входящего сообщения.
+
+  Returns:
+    Шестизначное число из сообщения, если оно найдено, иначе 0.
+  """
+  match = re.search(r'\b\d{6}\b', message)  # Ищем шестизначное число, окруженное границами слов
+  if match:
+    return int(match.group(0))  # Преобразуем найденное число в целое
+  else:
+    return 0  # Возвращаем 0, если число не найдено
 
 # main bot token
 token = '7636235626:AAGYrgmpGiILdHavPFDvL2yp4_a_UlIXCRs'
@@ -174,7 +191,7 @@ async def bot_message(message: Message, state: FSMContext):
                 await state.set_state(idk.bot_use)  # Переход в состояние пользователя
 
 @start_router.message(idk.bot_pos)
-async def admin_panel(message: Message, state: FSMContext):
+async def make_choice_bot_pos_menu(message: Message, state: FSMContext):
     if message.text == "Назад":
         await bot.send_message(message.from_user.id, "<b>Главное меню:</b>", parse_mode=ParseMode.HTML,
                                reply_markup=markups.menu)
@@ -183,23 +200,25 @@ async def admin_panel(message: Message, state: FSMContext):
     if message.text == "Производственный статус":
         await bot.send_message(message.from_user.id, "<b>Производственный статус:</b>", parse_mode=ParseMode.HTML,
                                reply_markup=markups.pro_menu)
+        await state.update_data(bot_pos="Производственный")
         await state.set_state(idk.bot_pos_pro)
 
     if message.text == "Непроизводственный статус":
         await bot.send_message(message.from_user.id, "<b>Непроизводственный статус:</b>", parse_mode=ParseMode.HTML,
                                reply_markup=markups.nopro_menu)
+        await state.update_data(bot_pos="Непроизводственный")
         await state.set_state(idk.bot_pos_nopro)
 
 
 @start_router.message(idk.bot_pos_pro)
-async def admin_panel(message: Message, state: FSMContext):
+async def make_choice_bot_pos_pro_menu(message: Message, state: FSMContext):
     if message.text == "Назад":
         await bot.send_message(message.from_user.id, "<b>Меню расстановки:</b>", parse_mode=ParseMode.HTML,
                                reply_markup=markups.pos_menu)
         await state.set_state(idk.bot_pos)
 
 @start_router.message(idk.bot_pos_nopro)
-async def admin_panel(message: Message, state: FSMContext):
+async def make_choice_bot_pos_nopro_menu(message: Message, state: FSMContext):
     if message.text == "Назад":
         await bot.send_message(message.from_user.id, "<b>Меню расстановки:</b>", parse_mode=ParseMode.HTML,
                                reply_markup=markups.pos_menu)
