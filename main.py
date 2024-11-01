@@ -79,7 +79,10 @@ class idk(StatesGroup):
     bot_use = State()
     bot_pos = State()
     bot_pos_pro = State()
+    bot_pos_pro_obj_ii = State()
+    bot_pos_pro_obj_ii_vid = State()
     bot_pos_nopro = State()
+    ot_pos_pro_obj = State()
     bot_admin = State()
     admin_panel = State()
     admin_delete_user = State()
@@ -212,10 +215,88 @@ async def make_choice_bot_pos_menu(message: Message, state: FSMContext):
 
 @start_router.message(idk.bot_pos_pro)
 async def make_choice_bot_pos_pro_menu(message: Message, state: FSMContext):
+    #кнопка "Назад"
+    if message.text == "Назад":
+        await bot.send_message(message.from_user.id, "<b>Меню расстановки:</b>", parse_mode=ParseMode.HTML,
+                               reply_markup=markups.pos_menu)
+        await state.set_state(idk.bot_pos) 
+    #кнопка "Заполнить как за предыдущий день"
+    if message.text == "Заполнить как за предыдущий день":
+        await bot.send_message(message.from_user.id, "<b>Информация по расстановке обновлена</b>", parse_mode=ParseMode.HTML)
+        await bot.send_message(message.from_user.id, "<b>Ваш статус: пока не известен</b>", parse_mode=ParseMode.HTML)
+        # нужно придумать функции: 
+        #1. проверка есть ли расстановка за предыдущий день по данному работнику
+        #2. если есть - копирование строки (строк) с обновлением даты на текущую
+        #3. если нет - то вывод сообщения об отсутствии записи за предыдущую дату
+        #4. по завершению обновления статуса по вчерашнему дню вывод на экран текущего статуса
+        await state.set_state(idk.bot_pos) 
+    #кнопка "Выбрать объект"
+    if message.text == "Выбрать объект":
+        await bot.send_message(message.from_user.id, "<b>Введите шестизначный ID объекта:</b>", parse_mode=ParseMode.HTML,
+                               reply_markup=markups.sel_obj_menu)
+        await state.set_state(idk.bot_pos_pro_obj)
+
+
+@start_router.message(idk.bot_pos_pro_obj)
+async def make_choice_bot_pos_pro_obj_menu(message: Message, state: FSMContext):
     if message.text == "Назад":
         await bot.send_message(message.from_user.id, "<b>Меню расстановки:</b>", parse_mode=ParseMode.HTML,
                                reply_markup=markups.pos_menu)
         await state.set_state(idk.bot_pos)
+    else:
+        obj = check_six_digit_number(message.text)
+        if obj == 0:
+            await bot.send_message(message.from_user.id, "<b>Введен некорреткный индекс:</b>", parse_mode=ParseMode.HTML)
+        else:
+            await state.update_data(bot_pos_pro_obj=obj)
+            data = await state.get_data()
+            msg_text = (f'Вы выбрали объект <b>{data.get("bot_pos_pro_obj")}</b>')
+            await bot.send_message(message.from_user.id, msg_text, parse_mode=ParseMode.HTML)
+            await bot.send_message(message.from_user.id, "<b>Выберите контролируемый вид изысканий:</b>", parse_mode=ParseMode.HTML, reply_markup=markups.viborii_menu)
+            await state.set_state(idk.bot_pos_pro_obj_ii)
+
+
+@start_router.message(idk.bot_pos_pro_obj_ii)
+async def make_choice_bot_pos_pro_obj_ii_menu(message: Message, state: FSMContext):
+    if message.text == "Назад":
+        await bot.send_message(message.from_user.id, "<b>Меню расстановки:</b>", parse_mode=ParseMode.HTML,
+                               reply_markup=markups.pos_menu)
+        await state.set_state(idk.bot_pos)
+    
+    if message.text == "ИГИ" or "ИГДИ" or "ИГМИ" or "ИЭИ":   :     
+            await state.update_data(bot_pos_pro_obj_ii=message.text)
+            data = await state.get_data()
+            msg_text = (f'Вы выбрали вид изысканий <b>{data.get("bot_pos_pro_obj_ii")}</b>')
+            await bot.send_message(message.from_user.id, msg_text, parse_mode=ParseMode.HTML)
+            await bot.send_message(message.from_user.id, "<b>Укажите вид работ:</b>", parse_mode=ParseMode.HTML, reply_markup=markups.vibor_vid_menu)
+            await state.set_state(idk.bot_pos_pro_obj_ii_vid)
+        
+@start_router.message(idk.bot_pos_pro_obj_ii_vid)
+async def make_choice_bot_pos_pro_obj_ii_vid_menu(message: Message, state: FSMContext):
+    if message.text == "Назад":
+        await bot.send_message(message.from_user.id, "<b>Меню расстановки:</b>", parse_mode=ParseMode.HTML,
+                               reply_markup=markups.pos_menu)
+        await state.set_state(idk.bot_pos)
+    
+    if message.text in ['Подготовительный: проверка ТЗ (первичное)',
+                        'Подготовительный: проверка ТЗ (повторное)',
+                       'Подготовительный: проверка ППР (первичное)',
+                       'Подготовительный: проверка ППР (повторное)',
+                       'Полевой этап (дистанционно)',
+                       'Полевой этап',
+                       'Лабораторный этап (дистанционно)',
+                       'Лабораторный этап',
+                       'Камеральный: проверка ТО (первичное)',
+                       'Камеральный: проверка ТО (повторное)']:     
+            await state.update_data(bot_pos_pro_obj_ii_vid=message.text)
+            data = await state.get_data()
+            msg_text = (f'Вы выбрали вид работ <b>{data.get("bot_pos_pro_obj_ii_vid")}</b>')
+            await bot.send_message(message.from_user.id, msg_text, parse_mode=ParseMode.HTML)
+            msg_text = (f'Ваш статус сегодня: Объект:<b>{data.get("bot_pos_pro_obj")}</b> Вид ИИ: <b>{data.get("bot_pos_pro_obj_ii")}</b> Вид работ: <b>{data.get("bot_pos_pro_obj_ii_vid")}</b>')
+            #запись в БД
+            await bot.send_message(message.from_user.id, "<b>Производственный статус:</b>", parse_mode=ParseMode.HTML, reply_markup=markups.pro_menu)
+            await state.set_state(idk.bot_pos_pro)
+            await state.clear()
 
 @start_router.message(idk.bot_pos_nopro)
 async def make_choice_bot_pos_nopro_menu(message: Message, state: FSMContext):
