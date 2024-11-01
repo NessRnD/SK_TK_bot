@@ -9,12 +9,14 @@ button_accept = KeyboardButton(text='Подтвердить')
 #buttons
 button_get = KeyboardButton(text='Получить номер предписания')
 button_pos = KeyboardButton(text='Заполнить расстановку')
+button_my_pos = KeyboardButton(text='Проверить расстановку')
 button_inf = KeyboardButton(text='Справка')
 
 menu = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
-    [button_get],  # Создаем список, содержащий одну кнопку
-    [button_pos],  # Создаем список, содержащий вторую кнопку
-    [button_inf]   # Создаем список, содержащий третью кнопку
+    [button_get],
+    [button_pos],
+    [button_my_pos],
+    [button_inf]
 ])
 
 #pos menu

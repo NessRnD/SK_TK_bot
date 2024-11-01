@@ -25,6 +25,11 @@ def save(x):
     f.write(x)
     f.close()
 
+def get_date(days_ago=0):
+  today = datetime.date.today()
+  target_date = today - datetime.timedelta(days=days_ago)
+  return target_date.strftime("%d.%m.%Y")
+
 def check_six_digit_number(message):
   """
   Проверяет, содержит ли сообщение шестизначное число.
@@ -176,6 +181,18 @@ async def bot_message(message: Message, state: FSMContext):
             await state.set_state(Idk.bot_pos)
             await bot.send_message(message.from_user.id, "<b>Меню расстановки:</b>", parse_mode=ParseMode.HTML,
                                    reply_markup=markups.pos_menu)
+        #Проверить расстановку
+        if message.text == "Проверить расстановку":
+            rows = db.get_my_rasstanovka(message.from_user.id, get_date())
+            if rows:
+                # Форматируем результат
+                response = "Ваша расстановка:\n"
+                for row in rows:
+                    response += f"<b>Ваша расстановка на сегодня:</b> ID Объекта: {row[2]}, Категория: {row[3]}, Вид ИИ: {row[4]}, Статус: {row[5]}, Дата: {row[6]}\n"
+                await bot.send_message(message.from_user.id, response, parse_mode=ParseMode.HTML)
+            else:
+                await bot.send_message(message.from_user.id, "<b>Записей не найдено!</b>", parse_mode=ParseMode.HTML)
+
 
         if message.text == "/restart":
             await bot.send_message(message.from_user.id, "<b>Главное меню:</b>", parse_mode=ParseMode.HTML,
@@ -225,6 +242,23 @@ async def make_choice_bot_pos_pro_menu(message: Message, state: FSMContext):
         await bot.send_message(message.from_user.id, "<b>Информация по расстановке обновлена</b>", parse_mode=ParseMode.HTML)
         await bot.send_message(message.from_user.id, "<b>Ваш статус: пока не известен</b>", parse_mode=ParseMode.HTML,
                                reply_markup=markups.pos_menu)
+        rows = db.get_my_rasstanovka(message.from_user.id,get_date(days_ago=1))
+        if rows:
+            # Форматируем результат
+            response = "Ваша расстановка:\n"
+            for row in rows:
+                response += f"<b>Расстановка за вчера:</b> ID Объекта: {row[2]}, Категория: {row[3]}, Вид ИИ: {row[4]}, Статус: {row[5]}, Дата: {row[6]}\n"
+            await bot.send_message(message.from_user.id, response, parse_mode=ParseMode.HTML)
+            for row in rows:
+                db.add_pos(row[1],
+                           row[2],
+                           row[3],
+                           row[4],
+                           row[5],
+                           get_date())
+        else:
+            await bot.send_message(message.from_user.id, "<b>Записей не найдено!</b>", parse_mode=ParseMode.HTML)
+
         # нужно придумать функции: 
         #1. проверка есть ли расстановка за предыдущий день по данному работнику
         #2. если есть - копирование строки (строк) с обновлением даты на текущую
@@ -264,7 +298,7 @@ async def make_choice_bot_pos_pro_obj_ii_menu(message: Message, state: FSMContex
                                reply_markup=markups.pos_menu)
         await state.set_state(Idk.bot_pos)
     
-    if message.text == "ИГИ" or "ИГДИ" or "ИГМИ" or "ИЭИ":
+    if message.text in ["ИГИ","ИГДИ","ИГМИ","ИЭИ"]:
         await state.update_data(bot_pos_pro_obj_ii=message.text)
         data = await state.get_data()
         msg_text = f'Вы выбрали вид изысканий <b>{data.get("bot_pos_pro_obj_ii")}</b>'
@@ -291,11 +325,18 @@ async def make_choice_bot_pos_pro_obj_ii_vid_menu(message: Message, state: FSMCo
                        'Камеральный: проверка ТО (повторное)']:     
             await state.update_data(bot_pos_pro_obj_ii_vid=message.text)
             data = await state.get_data()
-            msg_text = f'Вы выбрали вид работ <b>{data.get("bot_pos_pro_obj_ii_vid")}</b>'
+            msg_text = f'Вы выбрали вид работ <b>{data.get("bot_pos_pro")}</b> <b>{data.get("bot_pos_pro_obj_ii_vid")}</b> '
             await bot.send_message(message.from_user.id, msg_text, parse_mode=ParseMode.HTML)
-            msg_text = f'Ваш статус сегодня: Объект:<b>{data.get("bot_pos_pro_obj")}</b> Вид ИИ: <b>{data.get("bot_pos_pro_obj_ii")}</b> Вид работ: <b>{data.get("bot_pos_pro_obj_ii_vid")}</b>'
+            msg_text = (f'Ваш статус сегодня: <b>{data.get("bot_pos")}</b> Объект:<b>{data.get("bot_pos_pro_obj")}</b> '
+                        f'Вид ИИ: <b>{data.get("bot_pos_pro_obj_ii")}</b> Вид работ: <b>{data.get("bot_pos_pro_obj_ii_vid")}</b>')
             #запись в БД
             await bot.send_message(message.from_user.id, msg_text, parse_mode=ParseMode.HTML)
+            db.add_pos(message.from_user.id,
+                       data.get("bot_pos_pro_obj"),
+                       data.get("bot_pos"),
+                       data.get("bot_pos_pro_obj_ii"),
+                       data.get("bot_pos_pro_obj_ii_vid"),
+                       get_date())
             await bot.send_message(message.from_user.id, "<b>Производственный статус:</b>", parse_mode=ParseMode.HTML, reply_markup=markups.pro_menu)
             await state.set_state(Idk.bot_pos_pro)
             #await state.clear()

@@ -43,3 +43,16 @@ class database:
     def delete_user(self,user_id):
         with self.connection:
             return self.cursor.execute("DELETE FROM `users` WHERE `user_id` = ?",(user_id, )).fetchall()
+
+    def add_pos(self,user_id, object_id, status_type, vid_ii, status, date):
+        with self.connection:
+            return self.cursor.execute(
+                "INSERT INTO rasstanovka (user_id, object_id, status_type, vid_ii, status, date) VALUES (?, ?, ?, ?, ?, ?)",
+                (user_id, object_id, status_type, vid_ii, status, date)
+            )
+
+    def get_my_rasstanovka(self,user_id, date):
+        with self.connection:
+            self.cursor.execute("SELECT * FROM rasstanovka WHERE user_id = ? AND date = ?", (user_id, date))
+            result = self.cursor.fetchall()
+            return result
