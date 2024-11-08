@@ -90,6 +90,7 @@ vibor_vid_menu = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
 button_otpusk = KeyboardButton(text='Отпуск')
 button_bolnica = KeyboardButton(text='Больничный')
 button_learning = KeyboardButton(text='Обучение')
+button_mezhvahta = KeyboardButton(text='Межвахта')
 button_office = KeyboardButton(text='Работа в офисе')
 
 nopro_menu = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
@@ -137,3 +138,18 @@ ikb_menu = InlineKeyboardMarkup(row_width= 2, inline_keyboard=[
 ikb_remove_user = InlineKeyboardMarkup(row_width= 2, inline_keyboard=[
     [ikb_cancel, ikb_remove]  # Создаем список, содержащий две кнопки
 ])
+
+kb = [
+    [   # 1 row of buttons for Navigation calendar
+        # where user can go to next/previous year/month
+        KeyboardButton(text='Navigation Calendar', callback_data='Navigation Calendar'),
+        KeyboardButton(text='Navigation Calendar w month'),
+    ],
+    [   # 2 row of buttons for Dialog calendar
+        # where user selects year first, then month, then day
+        KeyboardButton(text='Dialog Calendar'),
+        KeyboardButton(text='Dialog Calendar w year'),
+        KeyboardButton(text='Dialog Calendar w month'),
+    ],
+]
+start_kb = ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
